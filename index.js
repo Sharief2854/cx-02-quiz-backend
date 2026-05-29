@@ -7,6 +7,9 @@ const authRoutes=require("./routes/authRoutes");
 const cors=require("cors");
 const trainerRoutes=require("./routes/trainerRoutes");
 const isAdmin = require('./middlewares/adminAuth');
+const quizRoutes=require("./routes/quizRoutes");
+const isTrainer = require('./middlewares/trainerAuth');
+const questionRoutes=require("./routes/questionRoutes");
 
 
 const app=express();
@@ -19,7 +22,9 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/auth",authRoutes);
-app.use("/trainer",isAdmin,trainerRoutes);
+app.use("/trainer", isAdmin, trainerRoutes);
+app.use("/quiz", isTrainer,quizRoutes);
+app.use("/question",isTrainer,questionRoutes);
 
 
 app.get("/",(req,res)=>{
