@@ -9,6 +9,10 @@ let quizSchema=new mongoose.Schema({
         type:String,
         required:true
     },
+    duration:{
+        type:Number,
+        required:true
+    },
     code:{
         type:String,
         required:true,
@@ -18,6 +22,10 @@ let quizSchema=new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"user",
         required:true
+    },
+    isPublished:{
+        type:Boolean,
+        default:false
     }
     
 },{timestamps:true}

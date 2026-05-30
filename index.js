@@ -10,7 +10,8 @@ const isAdmin = require('./middlewares/adminAuth');
 const quizRoutes=require("./routes/quizRoutes");
 const isTrainer = require('./middlewares/trainerAuth');
 const questionRoutes=require("./routes/questionRoutes");
-
+const studentRoutes=require("./routes/studentRoutes");
+const isStudent = require('./middlewares/studentAuth');
 
 const app=express();
 
@@ -25,6 +26,8 @@ app.use("/auth",authRoutes);
 app.use("/trainer", isAdmin, trainerRoutes);
 app.use("/quiz", isTrainer,quizRoutes);
 app.use("/question",isTrainer,questionRoutes);
+app.use("/student",isStudent, studentRoutes);
+
 
 
 app.get("/",(req,res)=>{
