@@ -3,6 +3,7 @@ const QuizModel = require("../models/Quiz");
 const QuestionModel = require("../models/Question");
 const attemptModel = require("../models/Attempt");
 const questionAttemptModel = require("../models/QuestionAttempt");
+const resultModel = require("../models/Result");
 const router=express.Router();
 
 router.get("/allQuizzes",async (req,res)=>{
@@ -27,7 +28,7 @@ router.post("/verifyQuizCode/:id",async (req,res)=>{
     let questions = await QuestionModel.find({ quiz: quiz._id }).select("question options");
 
     let attempt = await attemptModel.findOne({ quiz: quiz._id, user: req.userId });
-    if (attempt) {
+    if (attempt && attempt.progress == "In-Progress") {
         console.log(attempt);
         let date = new Date();
         console.log();
@@ -40,6 +41,12 @@ router.post("/verifyQuizCode/:id",async (req,res)=>{
             questions,
             attemptId: attempt._id
         });
+        return;
+    }
+    if(attempt && attempt.progress=="Completed"){
+        res.status(409).json({
+            message:"already submitted"
+        })
         return;
     }
 
@@ -123,5 +130,57 @@ router.get("/getAttemptDetails/:attemptId",async (req,res)=>{
 });
 
 
+// submit quiz
+router.post("/submitQuiz/:attemptId",async (req,res)=>{
+    let attemptId=req.params.attemptId;
+    // validate
+    let attempt=await questionAttemptModel.find({attempt:attemptId}).populate({
+        path:"question",
+        select:"-options -trainer",
+        populate:{
+            path:"quiz",
+            select:"name duration"
+        }
+    });
+
+
+    // mark attempt as completed
+    await attemptModel.findByIdAndUpdate(attemptId,{
+        progress:"Completed"
+    })
+
+
+    let count=0;
+    for(let i=0;i<attempt.length;i++){
+        if(attempt[i].isCorrect==true){
+            count++;
+        }
+    }
+    console.log(attempt);
+    // store result in DB
+    resultModel.create({
+        user:req.userId,
+        quiz:attempt[0].question.quiz._id,
+        attempt:attemptId,
+        score:count
+    })
+
+
+    res.json({
+        score:count,
+        attempt
+    });
+});
+
+
+// get all results
+
+router.get("/allResults",async (req,res)=>{
+    let userId=req.userId;
+    
+    let results=await resultModel.find({user:userId})
+    res.json(results);
+})
+        
 
 module.exports = router;
